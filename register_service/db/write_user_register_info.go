@@ -10,8 +10,8 @@ import (
 const reloadTime int = 300 // 5分钟切换一次buffer
 
 type UserRegisterInfoSqlData struct {
-	Public_key string `db:"public_key"`
-	Images     []byte `db:"images"`
+	Public_key string   `db:"public_key"`
+	Images     [][]byte `db:"images"`
 }
 
 type UserRegisterInfoMysqlMgr struct {
@@ -75,26 +75,26 @@ func (c *UserRegisterInfoMysqlMgr) runDataWriteThread() {
 }
 
 func (c *UserRegisterInfoMysqlMgr) writeUsersInfo() error {
-	var userInfoItems []UserRegisterInfoSqlData
-	err := c.mysqlClient.Select(&userInfoItems,
-		"SELECT public_key, images FROM register_images")
-	if err != nil {
-		log.Fatal(err)
-		return err
+	var userInfoItems = c.userRegisterInfoBuffers[c.getUserRegisterInfosBackIndex()]
+	for _, userInfoItem := range userInfoItems {
+		_, err := c.mysqlClient.Exec(
+			"INSERT INTO test_user_info (public_key, images) VALUES (?, ?)",
+			userInfoItem.Public_key, []interface{}{userInfoItem.Images}, //Mysql will convert []interface{}{userInfoItem.Images} to longblob
+		)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
 	}
-	// tmpUserBalanceMap := c.processUserInfoSqlData(userInfoItems)
-	// if len(tmpUserBalanceMap) > 0 {
-	// 	c.userLoginInfos[c.getUserLoginInfosBackIndex()] = tmpUserBalanceMap
-	// 	c.switchUserLoginInfosIndex()
-	// }
-	// debug
-	// for k, v := range tmpUserBalanceMap {
-	// 	log.Printf("key:%v|value:%v\n", k, v)
-	// }
+	c.switchUserRegisterInfosIndex()
 	return nil
 }
 
 // 提供对外注册接口
-func (c *UserRegisterInfoMysqlMgr) userDataWrite() {
-
+func (c *UserRegisterInfoMysqlMgr) UserDataWrite(public_key string, images [][]byte) {
+	userInfoItem := UserRegisterInfoSqlData{
+		Public_key: public_key,
+		Images:     images,
+	}
+	c.userRegisterInfoBuffers[c.getUserRegisterInfosIndex()] = append(c.userRegisterInfoBuffers[c.getUserRegisterInfosIndex()], userInfoItem)
 }

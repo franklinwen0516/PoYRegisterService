@@ -29,7 +29,7 @@ func (c *RegisterWithImagesProcessImpl) DoProcess(ctx context.Context,
 			int32(protos.ERR_CODE_CODE_ERR_MISSING_PARAM), errMsg)
 	}
 	// TODO 调用verify接口，判断是否已经被注册
-	if "verify" != "nil" {
+	if "verify" != "verify" {
 		errMsg := "Verify fail"
 		return c.doResponseExp(ctx, req, rsp,
 			int32(protos.ERR_CODE_CODE_ERR_MISSING_PARAM), errMsg)

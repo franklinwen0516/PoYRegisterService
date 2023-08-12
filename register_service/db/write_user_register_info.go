@@ -82,7 +82,7 @@ func (c *UserRegisterInfoMysqlMgr) writeUsersInfo() error {
 			userInfoItem.Public_key, []interface{}{userInfoItem.Images}, //Mysql will convert []interface{}{userInfoItem.Images} to longblob
 		)
 		if err != nil {
-			log.Fatal(err)
+			log.Print(err)
 			return err
 		}
 	}

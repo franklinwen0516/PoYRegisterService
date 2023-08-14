@@ -2,8 +2,8 @@ package process
 
 import (
 	"context"
-	"log"
 	"register_service/db"
+	"register_service/localutil"
 	"register_service/protos"
 )
 
@@ -44,7 +44,7 @@ func (c *RegisterWithImagesProcessImpl) doResponse(ctx context.Context,
 		Ret:    0,
 		Reason: "Succ",
 	}
-	log.Print("register success, req: %+v, rsp: %+v\n", req, rsp)
+	localutil.UserRegisterLog.Infof("register success, req: %+v, rsp: %+v\n", req, rsp)
 	return nil
 }
 
@@ -55,7 +55,7 @@ func (c *RegisterWithImagesProcessImpl) doResponseExp(ctx context.Context,
 		Ret:    ret,
 		Reason: errMsg,
 	}
-	log.Fatal(
+	localutil.UserRegisterLog.Errorf(
 		"register fail, req: %+v, rsp: %+v, ret:%v, erMsg:%v\n",
 		req, rsp, ret, errMsg)
 	return nil

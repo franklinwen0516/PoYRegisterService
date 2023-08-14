@@ -1,9 +1,9 @@
 package main
 
 import (
-	"register_service/protos"
-	"log"
 	"net"
+	"register_service/localutil"
+	"register_service/protos"
 
 	"google.golang.org/grpc"
 )
@@ -17,7 +17,7 @@ func main() {
 	protos.RegisterRegisterServiceServer(s, &RegisterServiceImpl{})
 	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
-		log.Fatalf("create network listener error: %s", err)
+		localutil.UserRegisterLog.Errorf("create network listener error: %s", err)
 		panic(err)
 	}
 	defer lis.Close()

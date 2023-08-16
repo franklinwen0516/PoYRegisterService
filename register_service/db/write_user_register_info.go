@@ -1,13 +1,16 @@
 package db
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
 
-const reloadTime int = 300 // 5分钟切换一次buffer
+const reloadTime int = 20 // 5分钟切换一次buffer
 
 type UserRegisterInfoSqlData struct {
 	Public_key string   `db:"public_key"`
@@ -30,7 +33,7 @@ var (
 func (c *UserRegisterInfoMysqlMgr) Init() error {
 	client, err := sqlx.Connect("mysql", "root:1234@tcp(127.0.0.1:3306)/register_info")
 	if err != nil {
-		log.Fatalf("connect database error")
+		log.Fatalf("connect database error %s", err)
 		return err
 	}
 	c.mysqlClient = client
@@ -77,15 +80,36 @@ func (c *UserRegisterInfoMysqlMgr) runDataWriteThread() {
 func (c *UserRegisterInfoMysqlMgr) writeUsersInfo() error {
 	var userInfoItems = c.userRegisterInfoBuffers[c.getUserRegisterInfosBackIndex()]
 	for _, userInfoItem := range userInfoItems {
-		_, err := c.mysqlClient.Exec(
-			"INSERT INTO test_user_info (public_key, images) VALUES (?, ?)",
-			userInfoItem.Public_key, []interface{}{userInfoItem.Images}, //Mysql will convert []interface{}{userInfoItem.Images} to longblob
+		imagesMap := make(map[string][]byte)
+		for i, imgData := range userInfoItem.Images {
+			imagesMap[fmt.Sprintf("image%d", i+1)] = imgData
+		}
+
+		// Convert map to JSON
+		imagesJSON, err := json.Marshal(imagesMap)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// // Encrypt JSON data
+		// key := []byte("your-secret-key") // Replace with your secret key
+		// encryptedJSON, err := EncryptJSON(key, imagesJSON)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+
+		//imageBase64 := base64.StdEncoding.EncodeToString(imagesJSON)
+
+		_, err = c.mysqlClient.Exec(
+			"INSERT INTO register_info.register_images (public_key, images) VALUES (?, ?)",
+			userInfoItem.Public_key, imagesJSON,
 		)
 		if err != nil {
 			log.Print(err)
 			return err
 		}
 	}
+	c.userRegisterInfoBuffers[c.getUserRegisterInfosBackIndex()] = []UserRegisterInfoSqlData{}
 	c.switchUserRegisterInfosIndex()
 	return nil
 }

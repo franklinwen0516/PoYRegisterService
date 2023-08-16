@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option go_package = "register_service/protos";
+
+enum ERR_CODE {
+    CODE_NO_ERROR = 0;
+    CODE_ERR_MISSING_PARAM = -1;
+    CODE_ERR_INVALID_PARAM = -2;
+    CODE_ERR_FACE_EXISTING = -3;
+    CODE_ERR_UNKNOWN = -1001;
+}
+
+message BioRegisterRequset {
+    string account_public_key = 1;
+    repeated bytes facial_images = 2;
+}
+
+message BioRegisterResponse {
+    CommonRspHeader header = 1;
+}
+
+message CommonRspHeader {
+    int32 ret = 1;
+    string reason = 2;
+}
+
+service RegisterService {
+    rpc RegisterWithBioKey(BioRegisterRequset) returns (BioRegisterResponse);
+}
+
+//protoc --proto_path=. --go_out=../protos --go_opt=paths=source_relative --go-grpc_out=../protos --go-grpc_opt=paths=source_relative echo.proto

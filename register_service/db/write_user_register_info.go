@@ -10,7 +10,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-const reloadTime int = 20 // 5分钟切换一次buffer
+const reloadTime int = 300 // 5分钟切换一次buffer
+// const reloadTime int = 30 // test半分钟切换一次buffer
 
 type UserRegisterInfoSqlData struct {
 	Public_key string   `db:"public_key"`

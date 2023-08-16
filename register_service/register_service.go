@@ -1,9 +1,9 @@
 package main
 
 import (
-	"register_service/protos"
-	"register_service/process"
 	"context"
+	"register_service/process"
+	"register_service/protos"
 )
 
 func (s *RegisterServiceImpl) RegisterWithBioKey(ctx context.Context,
